@@ -9,17 +9,48 @@
 </head>
 
 <body>
-  <h2>Game of Life</h2>
+  <h2 id = 'gameTi'>Game of Life</h2>
   <table id='board'></table>
   
   <div id='control_panel'>
-    <button class='btn btn-success'>Step</button>
-    <button class='btn btn-primary'>Play</button>
-    <button class='btn btn-warning'>Reset Random</button>
-    <button class='btn btn-info'>Clear</button>
+    <button class='btn btn-success' onclick='gol.step();'>Step</button>
+    <button class='btn btn-primary' onclick='gol.enableAutoPlay();' id='playBt'>Play</button>
+    <button class='btn btn-warning' onclick = 'gol.randBoard();'>Reset Random</button>
+    <button class='btn btn-info' onClick = 'gol.clearMe();' id='clearBt'>Clear</button>
+    <button class='btn btn-warning' onClick = 'gol.changeSpeed();' id='playSpd'>Switch to Medium</button>
+  <hr width="20%"/>
+  Create a new board!<br/>
+  <label for='xVal'>Width</label>
+  <select id='xVal' name='xVal'>
+    <option value='5'>5</option>
+    <option value='10' selected>10</option>
+    <option value='20'>20</option>
+    <option value='30'>30</option>
+    <option value='100'>100</option>
+  </select>
+  <label for='yVal'>Height</label>
+  <select id='yVal' name='yVal'>
+    <option value='5'>5</option>
+    <option value='10' selected>10</option>
+    <option value='20'>20</option>
+    <option value='30'>30</option>
+    <option value='100'>100</option>
+  </select><br/>
+  <button class='btn btn-success' onclick='makeNew()'>Go!</button>
+  <hr width=20%/>
+  <label for='loadTarg'>Model to Load: </label>
+   <select id='loadTarg' name='loadTarg'>
+    <option value=".O.....|...O...|OO..OOO">Acorn</option>
+    <option value="OO.........................OO|.O.........................O.|.O.O.......O.............O.O.|..OO.....O..O.....O......OO..|............O.....OO.........|........O..........OO........|........O...OO....OO.........|.........OOOOO...............|.............................|.........OOOOO...............|........O...OO....OO.........|........O..........OO........|............O.....OO.........|..OO.....O..O.....O......OO..|.O.O.......O.............O.O.|.O.........................O.|OO.........................OO|" selected>P54 SpaceShip</option>
+    <option value=".......|..OOO..|.......|.......">Propeller</option>
+    <option value=".......|..OO...|.O..O..|..OO...">Static Oval</option>
+    <option value='....OOOO....|............|..OOOOOOOO..|............|OOOOOOOOOOOO|............|..OOOOOOOO..|............|....OOOO....|'>Pew pew!</option>
+  </select> <button class='btn btn-primary' onclick='gol.loadPreset();'>Load</button>
   </div>
   
+
   <script src="game.js"></script>
+  <script
   
 </body>
 </html>
