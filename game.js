@@ -4,6 +4,7 @@ function GameOfLife(width,height) {
   this.height = height;
   this.boardCellArr = [];
   this.cellStatus=[];
+  this.cellSinceDeath=[];
   this.Running = false;
   this.timerFunc;
   this.spd=300;
@@ -80,6 +81,7 @@ GameOfLife.prototype.setupBoardEvents = function() {
    for (var y=0; y < this.height; y++) {
      this.boardCellArr.push(document.getElementById(x + "-" + y).id);
      this.cellStatus.push(0);
+     this.cellSinceDeath.push(50);
    }
  }
 
@@ -128,15 +130,24 @@ GameOfLife.prototype.step = function () {
   }
   for (var u=0;u<this.cellStatus.length;u++){
     var cellToChange;
+    var lum = Math.max(0,(50-this.cellSinceDeath[u])-5);
+    var hue = Math.max(0,(-1.5 *this.cellSinceDeath[u])+60);
     if (this.cellStatus[u]==1){
       cellToChange = document.getElementById(this.boardCellArr[u]);
       cellToChange.setAttribute('data-status','alive');
       cellToChange.className = 'alive';
+      this.cellSinceDeath[u]=0;
+      
+      //cellToChange.style.backgroundColor='#fff';
     }
     else {
       cellToChange = document.getElementById(this.boardCellArr[u]);
       cellToChange.setAttribute('data-status','dead');
       cellToChange.className = 'dead';
+      if (this.cellSinceDeath[u]<100) {
+        this.cellSinceDeath[u]++;
+      }
+      cellToChange.style.backgroundColor='hsl('+hue+',100%,'+lum+'%)';
     }
   }
   
