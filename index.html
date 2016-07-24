@@ -13,11 +13,11 @@
   <table id='board'></table>
   
   <div id='control_panel'>
-    <button class='btn btn-success' onclick='gol.step();'>Step</button>
-    <button class='btn btn-primary' onclick='gol.enableAutoPlay();' id='playBt'>Play</button>
-    <button class='btn btn-warning' onclick = 'gol.randBoard();'>Reset Random</button>
-    <button class='btn btn-info' onClick = 'gol.clearMe();' id='clearBt'>Clear</button>
-    <button class='btn btn-warning' onClick = 'gol.changeSpeed();' id='playSpd'>Switch to Medium</button>
+    <button class='btn btn-success' id='stepBt'>Step</button>
+    <button class='btn btn-primary' id='playBt'>Play</button>
+    <button class='btn btn-warning' id='resetBt'>Reset Random</button>
+    <button class='btn btn-info' id='clearBt'>Clear</button>
+    <button class='btn btn-warning' id='playSpd'>Switch to Medium</button>
   <hr width="20%"/>
   Create a new board!<br/>
   <label for='xVal'>Width</label>
@@ -35,7 +35,17 @@
     <option value='20'>20</option>
     <option value='30'>30</option>
     <option value='100'>100</option>
-  </select><br/>
+  </select>
+  <label for='themeBox'>Theme</label>
+  <select id='themeBox' name='themeBox' onchange='themeChanger();'>
+    <option value='default' selected>Default (blue)</option>
+    <option value='fiery'>Fiery Explosions</option>
+    <option value='icey'>Icey</option>
+    <option value='liquid'>Liquid</option>
+    <option value='blood'>Blood cells (erythrocytes!)</option>
+    <option value='rainbow'>Rainbow</option>
+  </select>
+  <br/>
   <button class='btn btn-success' onclick='makeNew()'>Go!</button>
   <hr width=20%/>
   <label for='loadTarg'>Model to Load: </label>
@@ -45,7 +55,7 @@
     <option value=".......|..OOO..|.......|.......">Propeller</option>
     <option value=".......|..OO...|.O..O..|..OO...">Static Oval</option>
     <option value='....OOOO....|............|..OOOOOOOO..|............|OOOOOOOOOOOO|............|..OOOOOOOO..|............|....OOOO....|'>Pew pew!</option>
-  </select> <button class='btn btn-primary' onclick='gol.loadPreset();'>Load</button>
+  </select> <button class='btn btn-primary' id='loader'>Load</button>
   </div>
   
 

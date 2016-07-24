@@ -1,0 +1,368 @@
+
+function Conway(width,height) {
+  this.width = width;
+  this.height = height;
+  this.boardCellArr = [];
+  this.cellStatus=[];
+  //cell life and cell since death are used for color animations, depending on the 'theme'
+  this.theme='default';
+  this.cellSinceDeath=[];//note that, despite the name, this actually counts BACKWARDS. So right after death, it's 100, and it counts to zero
+  this.cellLife=[];
+  this.Running = false;
+  this.timerFunc;
+  this.spd=300;
+  this.loadFileLength;
+  this.loadFile='';
+  this.loadFileSkip;
+}
+
+Conway.prototype.createAndShowBoard = function () {
+  // create <table> element
+  document.getElementById('board').innerHTML = '';
+  this.cellStatus = [];
+  this.boardCellArr = [];
+  var simtable = document.createElement("tbody");
+  
+  // build Table HTML
+  var tablehtml = '';
+  for (var h=0; h<this.height; h++) {
+    tablehtml += "<tr id='row+" + h + "'>";
+    for (var w=0; w<this.width; w++) {
+      tablehtml += "<td data-status='dead' id='" + w + "-" + h + "'></td>";
+    }
+    tablehtml += "</tr>";
+  }
+  simtable.innerHTML = tablehtml;
+  
+  // add table to the #board element
+  var board = document.getElementById('board');
+  board.appendChild(simtable);
+  
+  // once html elements are added to the page, attach events to them
+  this.setupBoardEvents();
+};
+
+Conway.prototype.setupBoardEvents = function() {  
+
+  var onCellClick = function (e) {
+    // coordinates of cell, in case you need them
+    document.getElementById('clearBt').disabled=false;
+    var coord_array = this.id.split('-');
+    var coord_hash = {x: coord_array[0], y: coord_array[1]};
+    
+    var pos = sim.boardCellArr.indexOf(coord_array.join('-'));
+
+    // how to set the style of the cell when it's clicked
+    if (this.getAttribute('data-status') == 'dead') {
+      this.className = "alive";
+      this.setAttribute('data-status', 'alive');
+      sim.cellStatus[pos]=1;
+    } else {
+      this.className = "dead";
+      this.setAttribute('data-status', 'dead');
+      sim.cellStatus[pos]=0;
+    }
+  };
+
+
+ for (var x = 0; x < this.width; x++) {
+   for (var y=0; y < this.height; y++) {
+     this.boardCellArr.push(document.getElementById(x + "-" + y).id);
+     this.cellStatus.push(0);
+     this.cellSinceDeath.push(0);
+     this.cellLife.push(0);
+   }
+ }
+
+ for (var i = 0, len = this.boardCellArr.length; i < len; i++) {
+   document.getElementById(this.boardCellArr[i]).onclick = onCellClick;
+ }
+ document.getElementById('stepBt').onclick = this.step.bind(this);
+ document.getElementById('playBt').onclick = this.enableAutoPlay.bind(this);
+ document.getElementById('resetBt').onclick = this.randBoard.bind(this);
+ document.getElementById('clearBt').onclick = this.clearMe.bind(this);
+ document.getElementById('playSpd').onclick = this.changeSpeed.bind(this);
+ document.getElementById('loader').onclick = this.loadPreset.bind(this);
+};
+
+Conway.prototype.step = function () {
+
+  for (var n=0;n<this.boardCellArr.length;n++){
+    var liveness=0;
+    for (var x=-1;x<=1;x++){
+      for(var y=-1;y<=1;y++){
+        //do columns first, then rows.
+        if (x===0 && y===0){
+          //same cell: do nothing
+        }
+        else{
+          var currCellArr= this.boardCellArr[n].split('-');
+          currCellArr[0] = parseInt(currCellArr[0])+x;
+          currCellArr[1] = parseInt(currCellArr[1])+y;
+          var cellToCheck = currCellArr[0]  + '-' + currCellArr[1] ;
+          if (document.getElementById(cellToCheck) && document.getElementById(cellToCheck).className == 'alive'){
+            liveness++;
+          }
+        }
+      }
+    }
+    //check to see if cell gets to live or not
+    if (this.cellStatus[n]==1 && (liveness <2 || liveness >3)){
+      this.cellStatus[n]=0;
+    }
+    else if (this.cellStatus[n]==0 && liveness ==3){
+      this.cellStatus[n] = 1;
+    }
+    else {
+      this.cellStatus[n] = this.cellStatus[n];
+    }
+
+  }
+  for (var u=0;u<this.cellStatus.length;u++){
+    var cellToChange = document.getElementById(this.boardCellArr[u]);
+    if (this.cellStatus[u]==1){
+      //cell to live :D
+      this.cellSinceDeath[u] = 100;
+      this.cellLife[u]++;
+
+      cellToChange.setAttribute('data-status','alive');
+      cellToChange.className = 'alive';
+    }
+    else {
+       //cell to die Q_Q
+      if (this.cellSinceDeath[u]>=5){
+        this.cellSinceDeath[u]-=5;
+      }
+      this.cellLife[u] = 0;
+      cellToChange.setAttribute('data-status','dead');
+      cellToChange.className = 'dead';
+
+    }
+    this.themeMe(u);
+  }
+  
+};
+
+Conway.prototype.themeMe = function(u){
+  /*this function runs once each time a cell is 'called'. It deals with themes
+  (i.e., fiery, icey, default, red, etc.)
+  u = the current cell
+  */
+  var cellToChange = document.getElementById(this.boardCellArr[u]);
+
+  if (this.theme == 'default'){
+    //default theme (blue, no glo)
+    cellToChange.style.boxShadow = 'none';
+    cellToChange.style.borderRadius = '0%';
+    if(this.cellStatus[u]==1){
+      cellToChange.style.backgroundColor = '#22f';
+    }
+    else {
+      cellToChange.style.backgroundColor = '#000';
+    }
+  }
+  else if(this.theme =='fiery') {
+    //fiery explosion theme
+    if(this.cellStatus[u]==1){
+      cellToChange.style.backgroundColor = '#fff';
+      cellToChange.style.boxShadow = '0 0 7px 3px #fff';
+    }
+    else {
+    var cellCol = Math.floor(this.cellSinceDeath[u]*.6);
+    var cellGlo = Math.floor(this.cellSinceDeath[u]*.7);
+    var cellFullCol = 'hsl('+cellCol+',100%,'+this.cellSinceDeath[u]+'%)';
+    cellToChange.style.boxShadow = '0 0 '+cellGlo+'px '+Math.floor(cellGlo/2)+'px '+cellFullCol;
+    cellToChange.style.backgroundColor = cellFullCol;
+    }
+  }
+  else if(this.theme == 'icey'){
+    //icey fuzzy theme
+    if(this.cellStatus[u]==1){
+      cellToChange.style.backgroundColor = '#fff';
+      cellToChange.style.boxShadow = '0 0 7px 3px #fff';
+    }
+    else {
+    var cellGlo = Math.floor(this.cellSinceDeath[u]*.7);
+    var cellFullCol = 'hsl(220,100%,'+this.cellSinceDeath[u]+'%)';
+    cellToChange.style.boxShadow = '0 0 '+Math.floor(cellGlo/2)+'px '+cellGlo+'px '+cellFullCol;
+    cellToChange.style.backgroundColor = cellFullCol;
+    }
+  }
+  else if(this.theme == 'liquid') {
+    //liquid theme
+    cellToChange.style.borderRadius = '50%';
+    
+    if(this.cellStatus[u]==1){
+      cellToChange.style.backgroundColor = 'rgb(50,50,255)';
+      cellToChange.boxShadow = '0 0 1px 9px #ccf';
+      cellToChange.style.opacity = .5;
+    }
+    else {
+      var cellGlo = Math.floor(this.cellSinceDeath[u]*.5);
+      var liqSize = 9 + Math.floor(((100-this.cellSinceDeath[u])/100)*12);
+      var cellFullCol = 'rgb(50,50,255)';
+      cellToChange.style.opacity = cellGlo;
+      cellToChange.style.backgroundColor = cellFullCol;
+      cellToChange.boxShadow = '0 0 '+Math.floor(liqSize/9)+'px '+liqSize+'px #ccf';
+    }
+  }
+  else if(this.theme =='blood'){
+    //erythrocyte theme
+    if(this.cellStatus[u]==1){
+     cellToChange.style.borderRadius = '50%';
+     cellToChange.style.boxShadow = '0  0 4px 4px #b22 inset';
+     cellToChange.style.backgroundColor = '#900';
+    }
+    else {
+     cellToChange.style.borderRadius = '0%';
+     cellToChange.style.boxShadow = 'none';
+     cellToChange.style.backgroundColor = '#000';
+    }
+  }
+  else if(this.theme =='rainbow'){
+    //rainbow theme
+    cellToChange.style.boxShadow = 'none';
+    cellToChange.style.borderRadius = '0%';
+    if(this.cellStatus[u]==1){
+     var cellFullCol = 'hsl('+Math.floor((this.cellLife[u]*10) % 360)+',100%,50%)';
+     cellToChange.style.backgroundColor = cellFullCol;
+    }
+    else {
+     cellToChange.style.backgroundColor = '#000';
+    }
+  }
+
+  
+};
+
+Conway.prototype.themeGet = function (){
+  //and this function actually assigns the themes (changes this.theme)
+  sim.theme = document.getElementById('themeBox').value;
+  console.log(this.theme);
+};
+
+Conway.prototype.enableAutoPlay = function () {
+  // Start Auto-Play by running the 'step' function
+  // automatically repeatedly every fixed time interval
+  if (this.Running){
+    //game already running, turn off!
+
+    document.getElementById('playBt').innerHTML = 'Play';
+    this.Running = false;
+    clearInterval(this.timerFunc);
+  }
+  else {
+    //not already running: start the 'game'!
+    document.getElementById('playBt').innerHTML = 'Pause';
+    this.Running = true;
+    var stepper = this;
+    this.timerFunc = setInterval(function(){stepper.step()},300);
+    //steppers gonna step
+  }
+};
+
+Conway.prototype.clearMe = function() {
+  for (var n=0;n<this.cellStatus.length;n++){
+    this.cellStatus[n] ==0;
+    var cellToChange = document.getElementById(this.boardCellArr[n]);
+    cellToChange.setAttribute('data-status','dead');
+    cellToChange.className = 'dead';
+    clearInterval(this.timerFunc);
+    document.getElementById('clearBt').disabled = true;
+  }
+};
+
+Conway.prototype.randBoard = function() {
+  for (var n=0;n<this.cellStatus.length;n++){
+    var onOrOff= Math.floor(Math.random()*5);
+    if (!onOrOff){
+      this.cellStatus[n] ==1;
+      var cellToChange = document.getElementById(this.boardCellArr[n]);
+      cellToChange.setAttribute('data-status','alive');
+      cellToChange.className = 'alive';
+    } 
+    else {
+      this.cellStatus[n] ==0;
+      var cellToChange = document.getElementById(this.boardCellArr[n]);
+      cellToChange.setAttribute('data-status','dead');
+      cellToChange.className = 'dead';
+    }
+  }
+};
+
+Conway.prototype.changeSpeed = function() {
+  if (this.spd == 300){
+    //curr on slow, switch to med
+    this.spd = 200;
+    document.getElementById('playSpd').innerHTML = 'Switch to Fast';
+    document.getElementById('playSpd').style.boxShadow='0 0 4px #fca';
+  }
+  else if (this.spd == 200){
+    //curr on med, switch to fast
+    document.getElementById('playSpd').innerHTML = 'Switch to Slow';
+    document.getElementById('playSpd').style.boxShadow='0 0 6px #fff';
+    this.spd = 100;
+  }
+  else {
+    //curr on fast, switch to slow
+    document.getElementById('playSpd').innerHTML = 'Switch to Medium';
+    document.getElementById('playSpd').style.boxShadow='0 0 2px #c32';
+    this.spd = 300;
+  }
+  if (this.Running){
+    clearInterval(this.timerFunc);
+    this.timerFunc = setInterval(function(){sim.step()},this.spd);
+  }
+    
+};
+
+Conway.prototype.loadPreset = function(){
+this.clearMe();
+document.getElementById('clearBt').disabled=false;
+this.loadFile = document.getElementById('loadTarg').value.split('|');
+this.loadFileLength = this.loadFile[0].length;
+if (this.loadFileLength<=this.width && this.loadFile.length<= this.height){
+  this.loadFileSkip = this.width-this.loadFileLength;//this will be the number to skip in cellStatus
+  var currCellNum=0;
+  for (var y=0;y<this.loadFile.length;y++){
+    for (var x=0;x<this.loadFileLength;x++){
+      if(this.loadFile[y][x] == 'O'){
+        //cell LIVES!
+        this.cellStatus[currCellNum] =1;
+        var cellToChange = document.getElementById(this.boardCellArr[currCellNum]);
+        cellToChange.setAttribute('data-status','alive');
+        cellToChange.className = 'alive';
+      }
+      else {
+        this.cellStatus[currCellNum] =0;
+        var cellToChange = document.getElementById(this.boardCellArr[currCellNum]);
+        cellToChange.setAttribute('data-status','dead');
+        cellToChange.className = 'dead';
+      }
+      currCellNum++;
+    }
+    currCellNum += this.loadFileSkip;
+  }
+}
+else {
+  alert ('The board is too small for your pattern!');
+}
+};
+
+var sim;
+
+
+function makeNew(){
+  var x = parseInt(document.getElementById('xVal').value);
+  var y = parseInt(document.getElementById('yVal').value);
+  sim = new Conway(x,y);
+  sim.themeGet();
+  sim.createAndShowBoard();
+  document.getElementById('gameTi').innerHTML = 'Game of Life ('+x+' by '+y+')';
+}
+
+var themeChanger = function (){
+  if (sim){
+    sim.themeGet();
+  }
+};

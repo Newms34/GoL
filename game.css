@@ -14,14 +14,17 @@ h1, h2 {
   border: none;
   width: 16px;
   height: 16px;
+  margin:8px;
+
+  overflow: hidden;
 }
 
 td.alive {
-  background-color:rgb(250,250,0);
+  z-index: 5;
 }
 
 td.dead {
-
+z-index: 0;
 }
 
 #control_panel {
